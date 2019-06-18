@@ -23,12 +23,20 @@ objects:
             value: ${NAMESPACE}
           - name: TARGET_INSTANCE
             value: ${TARGET_INSTANCE}
+          - name: DEVELOPER_ACCOUNT_ID
+            value: ${DEVELOPER_ACCOUNT_ID}
+          - name: PRIVATE_BASE_URL
+            value: ${PRIVATE_BASE_URL}
 parameters:
 - name: SECRET_NAME
   value: 3scale-toolbox
 - name: NAMESPACE
   value: api-lifecycle
 - name: TARGET_INSTANCE
-  value: nmasse-redhat
+  value: 3scale-saas
 - name: GIT_REPO
   value: https://github.com/nmasse-itix/API-Lifecycle-Mockup.git
+- name: DEVELOPER_ACCOUNT_ID
+  required: true
+- name: PRIVATE_BASE_URL
+  required: true

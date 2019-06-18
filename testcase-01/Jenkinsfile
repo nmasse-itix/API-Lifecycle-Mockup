@@ -1,10 +1,12 @@
 #!groovy
 
-library identifier: '3scale-toolbox-jenkins@master', 
+library identifier: '3scale-toolbox-jenkins@add-features',
         retriever: modernSCM([$class: 'GitSCMSource',
-                              remote: 'https://github.com/nmasse-itix/3scale-toolbox-jenkins.git'])
+                              remote: 'https://github.com/rh-integration/3scale-toolbox-jenkins.git'
+                              traits: [[$class: 'jenkins.plugins.git.traits.BranchDiscoveryTrait']]])
 
 def service = null
+def testApplicationCredentials = null
 
 node() {
   stage('Checkout Source') {
@@ -14,7 +16,8 @@ node() {
   stage("Prepare") {
     service = toolbox.prepareThreescaleService(
         openapi: [filename: "testcase-01/swagger.json"],
-        environment: [baseSystemName: toolbox.generateRandomBaseSystemName()],
+        environment: [ baseSystemName: toolbox.generateRandomBaseSystemName(),
+                       privateBaseUrl: params.PRIVATE_BASE_URL ],
         toolbox: [openshiftProject: params.NAMESPACE, destination: params.TARGET_INSTANCE, secretName: params.SECRET_NAME],
         service: [:],
         applicationPlans: [
@@ -39,21 +42,24 @@ node() {
   stage("Create an Application") {
     def testApplication = [
       name: "my-test-app",
-      description: "This is used for tests"
+      description: "This is used for tests",
+      applicationPlan: "test",
+      accountId: params.DEVELOPER_ACCOUNT_ID
     ]
 
-    def testApplicationCredentials = toolbox.getDefaultApplicationCredentials(service, testApplication.name)
+    testApplicationCredentials = toolbox.getDefaultApplicationCredentials(service, testApplication.name)
     service.applyApplication(testApplication + testApplicationCredentials)
   }
 
   stage("Run integration tests") {
     // To run the integration tests when using APIcast SaaS instances, we need
     // to fetch the proxy definition to extract the staging public url
-    def proxy = service.readProxy()
-    sh '''set -xe
-    curl ${proxy.sandbox_endpoint}/beers
-    # TODO
-    '''
+    def proxy = service.readProxy("sandbox")
+    sh """set -e +x
+    curl -f -w "ListBeers: %{http_code}\n" -o /dev/null -s ${proxy.sandbox_endpoint}/api/beer -H 'api-key: ${testApplicationCredentials.userKey}'
+    curl -f -w "GetBeer: %{http_code}\n" -o /dev/null -s ${proxy.sandbox_endpoint}/api/beer/Weissbier -H 'api-key: ${testApplicationCredentials.userKey}'
+    curl -f -w "GetBeer: %{http_code}\n" -o /dev/null -s ${proxy.sandbox_endpoint}/api/beer/findByStatus/available -H 'api-key: ${testApplicationCredentials.userKey}'
+    """
   }
 
   stage("Promote to production") {
