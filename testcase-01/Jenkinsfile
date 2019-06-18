@@ -2,8 +2,7 @@
 
 library identifier: '3scale-toolbox-jenkins@add-features',
         retriever: modernSCM([$class: 'GitSCMSource',
-                              remote: 'https://github.com/rh-integration/3scale-toolbox-jenkins.git',
-                              traits: [[$class: 'jenkins.plugins.git.traits.BranchDiscoveryTrait']]])
+                              remote: 'https://github.com/rh-integration/3scale-toolbox-jenkins.git'])
 
 def service = null
 def testApplicationCredentials = null
