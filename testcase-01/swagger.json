@@ -14,6 +14,9 @@
     },
     "version": "0.9"
   },
+  "host": "beer-catalog.app.itix.fr",
+  "schemes": [ "http" ],
+  "basePath": "/api",
   "paths": {
     "/beer/{name}": {
       "get": {
