@@ -15,7 +15,7 @@ node() {
 
   stage("Prepare") {
     service = toolbox.prepareThreescaleService(
-        openapi: [filename: "testcase-01/swagger.json"],
+        openapi: [filename: "testcase-01/swagger.yaml"],
         environment: [ baseSystemName: toolbox.generateRandomBaseSystemName(),
                        privateBaseUrl: params.PRIVATE_BASE_URL ],
         toolbox: [openshiftProject: params.NAMESPACE, destination: params.TARGET_INSTANCE, secretName: params.SECRET_NAME],
