@@ -57,3 +57,6 @@ oc process -f testcase-01/setup.yaml -p DEVELOPER_ACCOUNT_ID=2445582535751 -p PR
 
 ### Usecase 02: Deploy an API on 3scale SaaS with self-managed APIcast and 3scale on-premises
 
+```sh
+oc process -f testcase-02/setup.yaml -p DEVELOPER_ACCOUNT_ID=2445582535751 -p PRIVATE_BASE_URL=http://beer-catalog.app.itix.fr -p TARGET_INSTANCE=3scale-saas -p PUBLIC_STAGING_WILDCARD_DOMAIN=nmasse-redhat-staging.app.itix.fr -p PUBLIC_PRODUCTION_WILDCARD_DOMAIN=nmasse-redhat-production.app.itix.fr |oc create -f -
+```

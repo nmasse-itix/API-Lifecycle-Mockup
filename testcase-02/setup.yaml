@@ -6,7 +6,7 @@ objects:
 - kind: "BuildConfig"
   apiVersion: "v1"
   metadata:
-    name: "testcase-02"
+    name: "testcase-02-${TARGET_INSTANCE}"
     namespace: ${NAMESPACE}
   spec:
     source:
