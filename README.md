@@ -8,6 +8,13 @@ Create an OpenShift project to hold all your artefacts:
 oc project api-lifecycle
 ```
 
+Deploy a Jenkins master:
+
+```sh
+oc new-app --template=jenkins-ephemeral --name=jenkins -p MEMORY_LIMIT=2Gi
+oc set env dc/jenkins JENKINS_OPTS=--sessionTimeout=86400
+```
+
 Create a secret that contains all your [3scale remotes](https://github.com/3scale/3scale_toolbox/blob/master/docs/remotes.md):
 
 ```sh
@@ -34,7 +41,15 @@ oc new-app --template=3scale-gateway --name=apicast-saas-production -p CONFIGURA
 oc scale dc/apicast-saas-staging --replicas=1
 oc scale dc/apicast-saas-production --replicas=1
 oc create route edge apicast-saas-staging --service=apicast-saas-staging --hostname=wildcard.saas-staging.app.itix.fr --insecure-policy=Allow --wildcard-policy=Subdomain
-oc create route edge apicast-saas-production --service=apicast-saas-production --hostname=wildcard.saas-production.app... --insecure-policy=Allow --wildcard-policy=Subdomain
+oc create route edge apicast-saas-production --service=apicast-saas-production --hostname=wildcard.saas-production.app.itix.fr --insecure-policy=Allow --wildcard-policy=Subdomain
+```
+
+Add wildcard routes to your existing 3scale on-prem instance:
+
+```sh
+oc project 3scale-25
+oc create route edge apicast-wildcard-staging --service=apicast-staging --hostname=wildcard.onprem-staging.app.itix.fr --insecure-policy=Allow --wildcard-policy=Subdomain
+oc create route edge apicast-wildcard-production --service=apicast-production --hostname=wildcard.onprem-production.app.itix.fr --insecure-policy=Allow --wildcard-policy=Subdomain
 ```
 
 ## Usecases
@@ -59,4 +74,8 @@ oc process -f testcase-01/setup.yaml -p DEVELOPER_ACCOUNT_ID=2445582535751 -p PR
 
 ```sh
 oc process -f testcase-02/setup.yaml -p DEVELOPER_ACCOUNT_ID=2445582535751 -p PRIVATE_BASE_URL=http://beer-catalog.app.itix.fr -p TARGET_INSTANCE=3scale-saas -p PUBLIC_STAGING_WILDCARD_DOMAIN=nmasse-redhat-staging.app.itix.fr -p PUBLIC_PRODUCTION_WILDCARD_DOMAIN=nmasse-redhat-production.app.itix.fr |oc create -f -
+```
+
+```sh
+oc process -f testcase-02/setup.yaml -p DEVELOPER_ACCOUNT_ID=5 -p PRIVATE_BASE_URL=http://beer-catalog.app.itix.fr -p TARGET_INSTANCE=3scale-onprem -p PUBLIC_STAGING_WILDCARD_DOMAIN=onprem-staging.app.itix.fr -p PUBLIC_PRODUCTION_WILDCARD_DOMAIN=onprem-production.app.itix.fr -p DISABLE_TLS_VALIDATION=yes |oc create -f -
 ```

@@ -31,6 +31,8 @@ objects:
             value: ${DEVELOPER_ACCOUNT_ID}
           - name: PRIVATE_BASE_URL
             value: ${PRIVATE_BASE_URL}
+          - name: DISABLE_TLS_VALIDATION
+            value: ${DISABLE_TLS_VALIDATION}
 parameters:
 - name: SECRET_NAME
   value: 3scale-toolbox
@@ -48,3 +50,5 @@ parameters:
   required: true
 - name: PRIVATE_BASE_URL
   required: true
+- name: DISABLE_TLS_VALIDATION
+  value: "no"
