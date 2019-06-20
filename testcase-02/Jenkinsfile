@@ -20,7 +20,10 @@ node() {
                        privateBasePath: "/api",
                        publicStagingWildcardDomain: params.PUBLIC_STAGING_WILDCARD_DOMAIN,
                        publicProductionWildcardDomain: params.PUBLIC_PRODUCTION_WILDCARD_DOMAIN ],
-        toolbox: [openshiftProject: params.NAMESPACE, destination: params.TARGET_INSTANCE, secretName: params.SECRET_NAME],
+        toolbox: [ openshiftProject: params.NAMESPACE,
+                   destination: params.TARGET_INSTANCE,
+                   image: "quay.io/redhat/3scale-toolbox:master", // TODO: remove me once the final image is released
+                   secretName: params.SECRET_NAME],
         service: [:],
         applications: [
             [ name: "my-test-app", description: "This is used for tests", plan: "test", account: params.DEVELOPER_ACCOUNT_ID ]
