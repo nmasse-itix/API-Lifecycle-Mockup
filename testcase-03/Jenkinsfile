@@ -14,12 +14,13 @@ node() {
 
   stage("Prepare") {
     service = toolbox.prepareThreescaleService(
-        openapi: [filename: "testcase-02/swagger.json"],
+        openapi: [filename: "testcase-03/swagger.json"],
         environment: [ baseSystemName: toolbox.generateRandomBaseSystemName(),
-                       privateBaseUrl: params.PRIVATE_BASE_URL,
-                       privateBasePath: "/api",
-                       publicStagingWildcardDomain: params.PUBLIC_STAGING_WILDCARD_DOMAIN,
-                       publicProductionWildcardDomain: params.PUBLIC_PRODUCTION_WILDCARD_DOMAIN ],
+                       publicBasePath: "/v1",
+                       publicStagingWildcardDomain: params.PUBLIC_STAGING_WILDCARD_DOMAIN != "" ? params.PUBLIC_STAGING_WILDCARD_DOMAIN : null,
+                       publicProductionWildcardDomain: params.PUBLIC_PRODUCTION_WILDCARD_DOMAIN != "" ? params.PUBLIC_PRODUCTION_WILDCARD_DOMAIN : null,
+                       oidcIssuerEndpoint: params.OIDC_ISSUER_ENDPOINT,
+                       privateBaseUrl: params.PRIVATE_BASE_URL ],
         toolbox: [ openshiftProject: params.NAMESPACE,
                    destination: params.TARGET_INSTANCE,
                    image: "quay.io/redhat/3scale-toolbox:master", // TODO: remove me once the final image is released
@@ -53,16 +54,7 @@ node() {
   }
 
   stage("Run integration tests") {
-    // The staging and production base URLs are computed by the shared library
-    def proxy = [
-        endpoint: service.environment.productionPublicBaseURL,
-        sandbox_endpoint: service.environment.stagingPublicBaseURL
-    ]
-    sh """set -e +x
-    curl -f -k -w "ListBeers: %{http_code}\n" -o /dev/null -s ${proxy.sandbox_endpoint}/beer
-    curl -f -k -w "GetBeer: %{http_code}\n" -o /dev/null -s ${proxy.sandbox_endpoint}/beer/Weissbier
-    curl -f -k -w "FindBeersByStatus: %{http_code}\n" -o /dev/null -s ${proxy.sandbox_endpoint}/beer/findByStatus/available
-    """
+    // NOT IMPLEMENTED (YET)
   }
 
   stage("Promote to production") {
