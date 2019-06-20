@@ -14,9 +14,12 @@ node() {
 
   stage("Prepare") {
     service = toolbox.prepareThreescaleService(
-        openapi: [filename: "testcase-01/swagger.yaml"],
+        openapi: [filename: "testcase-02/swagger.json"],
         environment: [ baseSystemName: toolbox.generateRandomBaseSystemName(),
-                       privateBaseUrl: params.PRIVATE_BASE_URL ],
+                       privateBaseUrl: params.PRIVATE_BASE_URL,
+                       privateBasePath: "/api",
+                       publicStagingWildcardDomain: params.PUBLIC_STAGING_WILDCARD_DOMAIN,
+                       publicProductionWildcardDomain: params.PUBLIC_PRODUCTION_WILDCARD_DOMAIN ],
         toolbox: [openshiftProject: params.NAMESPACE, destination: params.TARGET_INSTANCE, secretName: params.SECRET_NAME],
         service: [:],
         applications: [
@@ -46,13 +49,15 @@ node() {
   }
 
   stage("Run integration tests") {
-    // To run the integration tests when using APIcast SaaS instances, we need
-    // to fetch the proxy definition to extract the staging public url
-    def proxy = service.readProxy("sandbox")
+    // The staging and production base URLs are computed by the shared library
+    def proxy = [
+        endpoint: service.environment.productionPublicBaseURL,
+        sandbox_endpoint: service.environment.stagingPublicBaseURL
+    ]
     sh """set -e +x
-    curl -f -k -w "ListBeers: %{http_code}\n" -o /dev/null -s ${proxy.sandbox_endpoint}/api/beer -H 'api-key: ${service.applications[0].userkey}'
-    curl -f -k -w "GetBeer: %{http_code}\n" -o /dev/null -s ${proxy.sandbox_endpoint}/api/beer/Weissbier -H 'api-key: ${service.applications[0].userkey}'
-    curl -f -k -w "FindBeersByStatus: %{http_code}\n" -o /dev/null -s ${proxy.sandbox_endpoint}/api/beer/findByStatus/available -H 'api-key: ${service.applications[0].userkey}'
+    curl -f -k -w "ListBeers: %{http_code}\n" -o /dev/null -s ${proxy.sandbox_endpoint}/api/beer
+    curl -f -k -w "GetBeer: %{http_code}\n" -o /dev/null -s ${proxy.sandbox_endpoint}/api/beer/Weissbier
+    curl -f -k -w "FindBeersByStatus: %{http_code}\n" -o /dev/null -s ${proxy.sandbox_endpoint}/api/beer/findByStatus/available
     """
   }
 
