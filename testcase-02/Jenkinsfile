@@ -58,9 +58,9 @@ node() {
         sandbox_endpoint: service.environment.stagingPublicBaseURL
     ]
     sh """set -e +x
-    curl -f -k -w "ListBeers: %{http_code}\n" -o /dev/null -s ${proxy.sandbox_endpoint}/api/beer
-    curl -f -k -w "GetBeer: %{http_code}\n" -o /dev/null -s ${proxy.sandbox_endpoint}/api/beer/Weissbier
-    curl -f -k -w "FindBeersByStatus: %{http_code}\n" -o /dev/null -s ${proxy.sandbox_endpoint}/api/beer/findByStatus/available
+    curl -f -k -w "ListBeers: %{http_code}\n" -o /dev/null -s ${proxy.sandbox_endpoint}/beer
+    curl -f -k -w "GetBeer: %{http_code}\n" -o /dev/null -s ${proxy.sandbox_endpoint}/beer/Weissbier
+    curl -f -k -w "FindBeersByStatus: %{http_code}\n" -o /dev/null -s ${proxy.sandbox_endpoint}/beer/findByStatus/available
     """
   }
 
