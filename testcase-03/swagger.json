@@ -144,8 +144,7 @@
   "securityDefinitions": {
     "oidc": {
       "type": "oauth2",
-      "flow": "accessCode",
-      "authorizationUrl": "https://filled-later.dummy/auth",
+      "flow": "application",
       "tokenUrl": "https://filled-later.dummy/token",
       "scopes": {
         "openid": "Get an OpenID Connect token"
