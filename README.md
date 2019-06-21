@@ -1,5 +1,10 @@
 # API Lifecycle Mockup
 
+## Pre-requisites
+
+- OpenShift Cluster
+- Linux or Mac Workstation
+
 ## Setup
 
 Create an OpenShift project to hold all your artefacts:
@@ -62,13 +67,13 @@ oc create route edge apicast-wildcard-production --service=apicast-production --
 
 ## Usecases
 
-| #                  | Format | Security | Target                           | Policies            |
+| #                  | Format | Security | Target                           | Notes               |
 |--------------------|--------|----------|----------------------------------|---------------------|
 | [01](testcase-01/) | YAML   | API Key  | SaaS                             | -                   |
 | [02](testcase-02/) | JSON   | Open     | Self-Managed, on-premises        | URL rewriting       |
 | [03](testcase-03/) | JSON   | OIDC     | Self-Managed, on-premises        | URL rewriting       |
-| [04](testcase-04/) | YAML   | API Key  | 3 envs on 1 tenant, Self-managed | -                   |
-| [05](testcase-05/) | JSON   | OIDC     | 3 envs on 3 tenants, on-premises | -                   |
+| [04](testcase-04/) | YAML   | API Key  | 3 envs on 1 tenant, self-managed | -                   |
+| [05](testcase-05/) | YAML   | API Key  | 3 envs on 1 tenant, self-managed | Semantic Versioning |
 
 ### Usecase 01: Deploy a simple API on 3scale SaaS
 
@@ -96,8 +101,14 @@ oc process -f testcase-03/setup.yaml -p DEVELOPER_ACCOUNT_ID=2445582535751 -p PR
 oc process -f testcase-03/setup.yaml -p DEVELOPER_ACCOUNT_ID=5 -p PRIVATE_BASE_URL=http://beer-catalog.app.itix.fr -p TARGET_INSTANCE=3scale-onprem -p PUBLIC_STAGING_WILDCARD_DOMAIN=onprem-staging.app.itix.fr -p PUBLIC_PRODUCTION_WILDCARD_DOMAIN=onprem-production.app.itix.fr -p DISABLE_TLS_VALIDATION=yes  -p OIDC_ISSUER_ENDPOINT=https://$CLIENT_ID:$CLIENT_SECRET@$SSO_HOSTNAME/auth/realms/$REALM |oc create -f -
 ```
 
-### Usecase 03: Deploy an API in three environments, all in one tenant
+### Usecase 04: Deploy an API in three environments, all in one tenant
 
 ```sh
 oc process -f testcase-04/setup.yaml -p DEVELOPER_ACCOUNT_ID=2445582535751 -p PRIVATE_BASE_URL=http://event-api.app.itix.fr -p PUBLIC_STAGING_WILDCARD_DOMAIN=nmasse-redhat-staging.app.itix.fr -p PUBLIC_PRODUCTION_WILDCARD_DOMAIN=nmasse-redhat-production.app.itix.fr |oc create -f -
+```
+
+### Usecase 05: Deploy four versions of an API in three environments, all in one tenant
+
+```sh
+oc process -f testcase-05/setup.yaml -p DEVELOPER_ACCOUNT_ID=2445582535751 -p PRIVATE_BASE_URL=http://event-api.app.itix.fr -p PUBLIC_STAGING_WILDCARD_DOMAIN=nmasse-redhat-staging.app.itix.fr -p PUBLIC_PRODUCTION_WILDCARD_DOMAIN=nmasse-redhat-production.app.itix.fr -p OIDC_ISSUER_ENDPOINT=https://$CLIENT_ID:$CLIENT_SECRET@$SSO_HOSTNAME/auth/realms/$REALM |oc create -f -
 ```
