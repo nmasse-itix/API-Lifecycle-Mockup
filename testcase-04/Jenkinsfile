@@ -1,6 +1,6 @@
 #!groovy
 
-library identifier: '3scale-toolbox-jenkins@multi-environment', 
+library identifier: '3scale-toolbox-jenkins@master',
         retriever: modernSCM([$class: 'GitSCMSource',
                               remote: 'https://github.com/nmasse-itix/3scale-toolbox-jenkins.git',
                               traits: [[$class: 'jenkins.plugins.git.traits.BranchDiscoveryTrait']]])
