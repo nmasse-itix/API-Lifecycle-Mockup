@@ -16,7 +16,7 @@ node() {
 
       echo """
       Please specify the OpenAPI Specification filename you want to deploy:
-      
+
       Use one of the following provided files:
       - openapi-spec-v0.9.yaml => 2 methods, no security
       - openapi-spec-v1.0.yaml => 2 methods, API Key
@@ -29,6 +29,7 @@ node() {
       error("Use the OPENAPI_SPECIFICATION_FILE parameter to pass the OpenAPI Specification filename you want to deploy.")
     }
   }
+
   stage('Checkout Source') {
     checkout scm
   }
@@ -82,6 +83,7 @@ node() {
         environment: [ baseSystemName: "eventapi-05",
                        publicBasePath: "/api/",
                        environmentName: "test",
+                       oidcIssuerEndpoint: params.OIDC_ISSUER_ENDPOINT,
                        publicStagingWildcardDomain: params.PUBLIC_STAGING_WILDCARD_DOMAIN != "" ? params.PUBLIC_STAGING_WILDCARD_DOMAIN : null,
                        publicProductionWildcardDomain: params.PUBLIC_PRODUCTION_WILDCARD_DOMAIN != "" ? params.PUBLIC_PRODUCTION_WILDCARD_DOMAIN : null,
                        privateBaseUrl: params.PRIVATE_BASE_URL ],
@@ -123,6 +125,7 @@ node() {
         environment: [ baseSystemName: "eventapi-05",
                        publicBasePath: "/api/",
                        environmentName: "prod",
+                       oidcIssuerEndpoint: params.OIDC_ISSUER_ENDPOINT,
                        publicStagingWildcardDomain: params.PUBLIC_STAGING_WILDCARD_DOMAIN != "" ? params.PUBLIC_STAGING_WILDCARD_DOMAIN : null,
                        publicProductionWildcardDomain: params.PUBLIC_PRODUCTION_WILDCARD_DOMAIN != "" ? params.PUBLIC_PRODUCTION_WILDCARD_DOMAIN : null,
                        privateBaseUrl: params.PRIVATE_BASE_URL ],
