@@ -1,0 +1,159 @@
+#!groovy
+
+library identifier: '3scale-toolbox-jenkins@multi-environment', 
+        retriever: modernSCM([$class: 'GitSCMSource',
+                              remote: 'https://github.com/nmasse-itix/3scale-toolbox-jenkins.git',
+                              traits: [[$class: 'jenkins.plugins.git.traits.BranchDiscoveryTrait']]])
+
+def service = null
+
+node() {
+  stage('Checkout Source') {
+    checkout scm
+  }
+
+  stage("Deploy API in Dev") {
+    // Prepare
+    service = toolbox.prepareThreescaleService(
+        openapi: [filename: "testcase-04/swagger.yaml"],
+        environment: [ baseSystemName: "eventapi-04",
+                       publicBasePath: "/api/",
+                       environmentName: "dev",
+                       publicStagingWildcardDomain: params.PUBLIC_STAGING_WILDCARD_DOMAIN != "" ? params.PUBLIC_STAGING_WILDCARD_DOMAIN : null,
+                       publicProductionWildcardDomain: params.PUBLIC_PRODUCTION_WILDCARD_DOMAIN != "" ? params.PUBLIC_PRODUCTION_WILDCARD_DOMAIN : null,
+                       privateBaseUrl: params.PRIVATE_BASE_URL ],
+        toolbox: [ openshiftProject: params.NAMESPACE,
+                   destination: params.TARGET_INSTANCE,
+                   image: "quay.io/redhat/3scale-toolbox:master", // TODO: remove me once the final image is released
+                   insecure: params.DISABLE_TLS_VALIDATION == "yes",
+                   secretName: params.SECRET_NAME],
+        service: [:],
+        applications: [
+            [ name: "my-test-app", description: "This is used for tests", plan: "test", account: params.DEVELOPER_ACCOUNT_ID ]
+        ],
+        applicationPlans: [
+          [ systemName: "test", name: "Test", defaultPlan: true, published: true ]
+        ]
+    )
+
+    // Import OpenAPI
+    service.importOpenAPI()
+    echo "Service with system_name ${service.environment.targetSystemName} created !"
+
+    // Create an Application Plan
+    service.applyApplicationPlans()
+
+    // Create an Application
+    service.applyApplication()
+
+    // Run integration tests
+    // To run the integration tests when using APIcast SaaS instances, we need
+    // to fetch the proxy definition to extract the staging public url
+    def proxy = service.readProxy("sandbox")
+    sh """set -e +x
+    curl -f -k -w "GetLocation: %{http_code}\n" -o /dev/null -s ${proxy.sandbox_endpoint}/api/location -H 'api-key: ${service.applications[0].userkey}'
+    curl -f -k -w "GetTimeframe: %{http_code}\n" -o /dev/null -s ${proxy.sandbox_endpoint}/api/timeframe -H 'api-key: ${service.applications[0].userkey}'
+    curl -f -k -w "GetParticipants: %{http_code}\n" -o /dev/null -s ${proxy.sandbox_endpoint}/api/participants -H 'api-key: ${service.applications[0].userkey}'
+    """
+
+    // Promote to production
+    service.promoteToProduction()
+  }
+
+  stage("Deploy API in Test") {
+    // Prepare
+    service = toolbox.prepareThreescaleService(
+        openapi: [filename: "testcase-04/swagger.yaml"],
+        environment: [ baseSystemName: "eventapi-04",
+                       publicBasePath: "/api/",
+                       environmentName: "test",
+                       publicStagingWildcardDomain: params.PUBLIC_STAGING_WILDCARD_DOMAIN != "" ? params.PUBLIC_STAGING_WILDCARD_DOMAIN : null,
+                       publicProductionWildcardDomain: params.PUBLIC_PRODUCTION_WILDCARD_DOMAIN != "" ? params.PUBLIC_PRODUCTION_WILDCARD_DOMAIN : null,
+                       privateBaseUrl: params.PRIVATE_BASE_URL ],
+        toolbox: [ openshiftProject: params.NAMESPACE,
+                   destination: params.TARGET_INSTANCE,
+                   image: "quay.io/redhat/3scale-toolbox:master", // TODO: remove me once the final image is released
+                   insecure: params.DISABLE_TLS_VALIDATION == "yes",
+                   secretName: params.SECRET_NAME],
+        service: [:],
+        applications: [
+            [ name: "my-test-app", description: "This is used for tests", plan: "test", account: params.DEVELOPER_ACCOUNT_ID ]
+        ],
+        applicationPlans: [
+          [ systemName: "test", name: "Test", defaultPlan: true, published: true ]
+        ]
+    )
+
+    // Import OpenAPI
+    service.importOpenAPI()
+    echo "Service with system_name ${service.environment.targetSystemName} created !"
+
+    // Create an Application Plan
+    service.applyApplicationPlans()
+
+    // Create an Application
+    service.applyApplication()
+
+    // Run integration tests
+    // To run the integration tests when using APIcast SaaS instances, we need
+    // to fetch the proxy definition to extract the staging public url
+    def proxy = service.readProxy("sandbox")
+    sh """set -e +x
+    curl -f -k -w "GetLocation: %{http_code}\n" -o /dev/null -s ${proxy.sandbox_endpoint}/api/location -H 'api-key: ${service.applications[0].userkey}'
+    curl -f -k -w "GetTimeframe: %{http_code}\n" -o /dev/null -s ${proxy.sandbox_endpoint}/api/timeframe -H 'api-key: ${service.applications[0].userkey}'
+    curl -f -k -w "GetParticipants: %{http_code}\n" -o /dev/null -s ${proxy.sandbox_endpoint}/api/participants -H 'api-key: ${service.applications[0].userkey}'
+    """
+
+    // Promote to production
+    service.promoteToProduction()
+  }
+
+  stage("Deploy API in Prod") {
+    // Prepare
+    service = toolbox.prepareThreescaleService(
+        openapi: [filename: "testcase-04/swagger.yaml"],
+        environment: [ baseSystemName: "eventapi-04",
+                       publicBasePath: "/api/",
+                       environmentName: "prod",
+                       publicStagingWildcardDomain: params.PUBLIC_STAGING_WILDCARD_DOMAIN != "" ? params.PUBLIC_STAGING_WILDCARD_DOMAIN : null,
+                       publicProductionWildcardDomain: params.PUBLIC_PRODUCTION_WILDCARD_DOMAIN != "" ? params.PUBLIC_PRODUCTION_WILDCARD_DOMAIN : null,
+                       privateBaseUrl: params.PRIVATE_BASE_URL ],
+        toolbox: [ openshiftProject: params.NAMESPACE,
+                   destination: params.TARGET_INSTANCE,
+                   image: "quay.io/redhat/3scale-toolbox:master", // TODO: remove me once the final image is released
+                   insecure: params.DISABLE_TLS_VALIDATION == "yes",
+                   secretName: params.SECRET_NAME],
+        service: [:],
+        applications: [
+            [ name: "my-test-app", description: "This is used for tests", plan: "test", account: params.DEVELOPER_ACCOUNT_ID ]
+        ],
+        applicationPlans: [
+          [ systemName: "test", name: "Test", defaultPlan: true, published: true ]
+        ]
+    )
+
+    // Import OpenAPI
+    service.importOpenAPI()
+    echo "Service with system_name ${service.environment.targetSystemName} created !"
+
+    // Create an Application Plan
+    service.applyApplicationPlans()
+
+    // Create an Application
+    service.applyApplication()
+
+    // Run integration tests
+    // To run the integration tests when using APIcast SaaS instances, we need
+    // to fetch the proxy definition to extract the staging public url
+    def proxy = service.readProxy("sandbox")
+    sh """set -e +x
+    curl -f -k -w "GetLocation: %{http_code}\n" -o /dev/null -s ${proxy.sandbox_endpoint}/api/location -H 'api-key: ${service.applications[0].userkey}'
+    curl -f -k -w "GetTimeframe: %{http_code}\n" -o /dev/null -s ${proxy.sandbox_endpoint}/api/timeframe -H 'api-key: ${service.applications[0].userkey}'
+    curl -f -k -w "GetParticipants: %{http_code}\n" -o /dev/null -s ${proxy.sandbox_endpoint}/api/participants -H 'api-key: ${service.applications[0].userkey}'
+    """
+
+    // Promote to production
+    service.promoteToProduction()
+  }
+
+}
