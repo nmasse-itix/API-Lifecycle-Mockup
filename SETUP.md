@@ -65,7 +65,7 @@ oc create route edge apicast-wildcard-production --service=apicast-production --
 
 - Navigate to **Audience** > **Accounts** > **Listing**
 - Click on **Developer**
-- Saver the **Developer** Account ID that is the last part of the URL (after **/buyers/accounts/**)
+- Save the **Developer** Account ID that is the last part of the URL (after **/buyers/accounts/**)
 
 ```sh
 export ONPREM_DEVELOPER_ACCOUNT_ID=5
@@ -182,5 +182,5 @@ oc new-app --template=3scale-gateway --name=apicast-production -p CONFIGURATION_
 oc scale dc/apicast-staging --replicas=1
 oc scale dc/apicast-production --replicas=1
 oc create route edge apicast-staging --service=apicast-staging --hostname="$APICAST_SELF_MANAGED_STAGING_WILDCARD_DOMAIN" --insecure-policy=Allow --wildcard-policy=Subdomain
-oc create route edge apicast-production --service=apicast-saas-production --hostname="$APICAST_SELF_MANAGED_PRODUCTION_WILDCARD_DOMAIN" --insecure-policy=Allow --wildcard-policy=Subdomain
+oc create route edge apicast-production --service=apicast-production --hostname="$APICAST_SELF_MANAGED_PRODUCTION_WILDCARD_DOMAIN" --insecure-policy=Allow --wildcard-policy=Subdomain
 ```
