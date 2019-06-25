@@ -14,13 +14,12 @@ node() {
 
   stage("Prepare") {
     service = toolbox.prepareThreescaleService(
-        openapi: [filename: "testcase-03/swagger.json"],
-        environment: [ baseSystemName: toolbox.generateRandomBaseSystemName(),
-                       publicBasePath: "/v1",
+        openapi: [filename: "hybrid-usecase-open/swagger.json"],
+        environment: [ baseSystemName: "hybrid_usecase_open",
+                       privateBaseUrl: params.PRIVATE_BASE_URL,
+                       privateBasePath: "/api",
                        publicStagingWildcardDomain: params.PUBLIC_STAGING_WILDCARD_DOMAIN,
-                       publicProductionWildcardDomain: params.PUBLIC_PRODUCTION_WILDCARD_DOMAIN,
-                       oidcIssuerEndpoint: params.OIDC_ISSUER_ENDPOINT,
-                       privateBaseUrl: params.PRIVATE_BASE_URL ],
+                       publicProductionWildcardDomain: params.PUBLIC_PRODUCTION_WILDCARD_DOMAIN ],
         toolbox: [ openshiftProject: params.NAMESPACE,
                    destination: params.TARGET_INSTANCE,
                    image: "quay.io/redhat/3scale-toolbox:master", // TODO: remove me once the final image is released
@@ -54,23 +53,16 @@ node() {
   }
 
   stage("Run integration tests") {
-    def proxy = service.readProxy("sandbox")
-    def tokenEndpoint = getTokenEndpoint(params.OIDC_ISSUER_ENDPOINT)
-    def clientId = service.applications[0].clientId
-    def clientSecret = service.applications[0].clientSecret
+    // The staging and production base URLs are computed by the shared library
+    def proxy = [
+        endpoint: service.environment.productionPublicBaseURL,
+        sandbox_endpoint: service.environment.stagingPublicBaseURL
+    ]
     sh """set -e
-    echo "token endpoint is ${tokenEndpoint}"
     echo "Public Staging Base URL is ${proxy.sandbox_endpoint}"
-    echo "client_id=${clientId}"
-    echo "client_secret=${clientSecret}"
-    curl -sfk "${tokenEndpoint}" -d client_id="${clientId}" -d client_secret="${clientSecret}" -d scope=openid -d grant_type=client_credentials -o response.json
-    curl -sLfk https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 -o /tmp/jq
-    chmod 755 /tmp/jq
-    TOKEN="\$(/tmp/jq -r .access_token response.json)"
-    echo "Received access_token '\$TOKEN'"
-    curl -sfk -w "ListBeers: %{http_code}\n" -o /dev/null ${proxy.sandbox_endpoint}/v1/beer -H "Authorization: Bearer \$TOKEN"
-    curl -sfk -w "GetBeer: %{http_code}\n" -o /dev/null ${proxy.sandbox_endpoint}/v1/beer/Weissbier -H "Authorization: Bearer \$TOKEN"
-    curl -sfk -w "FindBeersByStatus: %{http_code}\n" -o /dev/null ${proxy.sandbox_endpoint}/v1/beer/findByStatus/available -H "Authorization: Bearer \$TOKEN"
+    curl -sfk -w "ListBeers: %{http_code}\n" -o /dev/null ${proxy.sandbox_endpoint}/beer
+    curl -sfk -w "GetBeer: %{http_code}\n" -o /dev/null ${proxy.sandbox_endpoint}/beer/Weissbier
+    curl -sfk -w "FindBeersByStatus: %{http_code}\n" -o /dev/null ${proxy.sandbox_endpoint}/beer/findByStatus/available
     """
   }
 
@@ -78,9 +70,4 @@ node() {
     service.promoteToProduction()
   }
 
-}
-
-def getTokenEndpoint(String oidcIssuerEndpoint) {
-   def m = (oidcIssuerEndpoint =~ /(https?:\/\/)[^:]+:[^@]+@(.*)/)
-   return "${m[0][1]}${m[0][2]}/protocol/openid-connect/token"
 }

@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Template
 metadata:
-  name: testcase-01
+  name: saas-usecase-apikey
 objects:
 - kind: "BuildConfig"
   apiVersion: "v1"
   metadata:
-    name: "testcase-01"
+    name: "saas-usecase-apikey"
     namespace: ${NAMESPACE}
   spec:
     source:
@@ -15,7 +15,7 @@ objects:
     strategy:
       type: "JenkinsPipeline"
       jenkinsPipelineStrategy:
-        jenkinsfilePath: testcase-01/Jenkinsfile
+        jenkinsfilePath: saas-usecase-apikey/Jenkinsfile
         env:
           - name: SECRET_NAME
             value: ${SECRET_NAME}
@@ -35,7 +35,7 @@ parameters:
 - name: TARGET_INSTANCE
   value: 3scale-saas
 - name: GIT_REPO
-  value: https://github.com/nmasse-itix/API-Lifecycle-Mockup.git
+  value: https://github.com/rh-integration/3scale-toolbox-jenkins-samples.git
 - name: DEVELOPER_ACCOUNT_ID
   required: true
 - name: PRIVATE_BASE_URL

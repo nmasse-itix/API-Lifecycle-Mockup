@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Template
 metadata:
-  name: testcase-04
+  name: multi-environment-usecase
 objects:
 - kind: "BuildConfig"
   apiVersion: "v1"
   metadata:
-    name: "testcase-04-${TARGET_INSTANCE}"
+    name: "multi-environment-usecase"
     namespace: ${NAMESPACE}
   spec:
     source:
@@ -15,7 +15,7 @@ objects:
     strategy:
       type: "JenkinsPipeline"
       jenkinsPipelineStrategy:
-        jenkinsfilePath: testcase-04/Jenkinsfile
+        jenkinsfilePath: multi-environment-usecase/Jenkinsfile
         env:
           - name: SECRET_NAME
             value: ${SECRET_NAME}
@@ -41,7 +41,7 @@ parameters:
 - name: TARGET_INSTANCE
   value: 3scale-saas
 - name: GIT_REPO
-  value: https://github.com/nmasse-itix/API-Lifecycle-Mockup.git
+  value: https://github.com/rh-integration/3scale-toolbox-jenkins-samples.git
 - name: PUBLIC_STAGING_WILDCARD_DOMAIN
   required: false
 - name: PUBLIC_PRODUCTION_WILDCARD_DOMAIN
